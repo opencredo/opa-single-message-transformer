@@ -10,21 +10,23 @@ It is intended to be use with either a source or sink Kafka Connect component.
 
 2. Set up your Kafka Connect sink or source.
 
-3. Add the OPA Single Message Transformer with-dependencies jar to your sink or source's `plugin.path`.
+3. Add the OPA Single Message Transformer with-dependencies jar to your sink or source's `plugin.path` folder configured in its config file.
 
 4. Add your OPA Single Message Transformer configuration to your sink or source configuration file, e.g.:
 
 ```
 transforms=opa
 transforms.opa.type=OpaTransformer
-transforms.opa.opaBundlePath=/Users/mfarrow/code/opa-single-message-transformer/example/bundle.tar.gz
+transforms.opa.bundlePath=/Users/mfarrow/code/opa-single-message-transformer/example/bundle.tar.gz
+transforms.opa.filteringEntryPoint=kafka/filter
 ```
 
 ## Parameters
 
-| Name          | Description                                                 |
-|---------------|-------------------------------------------------------------|
-| opaBundlePath | The path to the OPA bundle that the transformer should use. |
+| Name                | Description                                                  |
+|---------------------|--------------------------------------------------------------|
+| bundlePath          | The path to the OPA bundle that the transformer should use.  |
+| filteringEntrypoint | The entrypoint that specifies whether to filter out a record |
 
 
 The example bundle included is currently built manually from the .rego file:

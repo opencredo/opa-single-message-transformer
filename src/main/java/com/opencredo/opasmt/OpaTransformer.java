@@ -18,18 +18,22 @@ import java.util.stream.Collectors;
 
 public class OpaTransformer<R extends ConnectRecord<R>> implements Transformation<R> {
 
-    public static final String OPA_BUNDLE_PATH_FIELD = "opaBundlePath";
+    public static final String BUNDLE_PATH_FIELD = "bundlePath";
+    public static final String FILTERING_ENTRYPOINT = "filteringEntrypoint";
 
     public static final ConfigDef CONFIG =
-            new ConfigDef().define(OPA_BUNDLE_PATH_FIELD, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH,
-                    "Path to the OPA policy bundle");
+            new ConfigDef()
+                    .define(BUNDLE_PATH_FIELD, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH,"Path to the OPA policy bundle")
+                    .define(FILTERING_ENTRYPOINT, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "Entrypoint specifying whether to filter a record");
 
     private OPAModule opaModule;
+    private String opaFilteringEntrypoint;
 
     @Override
     public void configure(Map<String, ?> props) {
         final SimpleConfig config = new SimpleConfig(CONFIG, props);
-        String opaBundlePath = config.getString(OPA_BUNDLE_PATH_FIELD);
+        String opaBundlePath = config.getString(BUNDLE_PATH_FIELD);
+        opaFilteringEntrypoint = config.getString(FILTERING_ENTRYPOINT);
 
         try {
             System.out.println("Configuring OPATransformer against bundle path: " + opaBundlePath);
@@ -44,7 +48,7 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
     public R apply(R record) {
         String opaInput = recordToJson(record);
         System.out.println("** OPA input: " + opaInput);
-        String opaResponse = opaModule.evaluate(opaInput, "kafka/filter");
+        String opaResponse = opaModule.evaluate(opaInput, opaFilteringEntrypoint);
         System.out.println("** OPA response: " + opaResponse);
 
         var falseStr = "[{\"result\":false}]";

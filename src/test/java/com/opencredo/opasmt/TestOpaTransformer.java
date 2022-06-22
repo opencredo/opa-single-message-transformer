@@ -42,7 +42,10 @@ public class TestOpaTransformer {
     }
 
     private OpaTransformer<SourceRecord> buildTransformer() {
-        var properties = Map.of(OpaTransformer.OPA_BUNDLE_PATH_FIELD, "example/bundle.tar.gz");
+        var properties = Map.of(
+                OpaTransformer.BUNDLE_PATH_FIELD, "example/bundle.tar.gz",
+                OpaTransformer.FILTERING_ENTRYPOINT, "kafka/filter"
+        );
 
         var transformer = new OpaTransformer<SourceRecord>();
         transformer.configure(properties);
