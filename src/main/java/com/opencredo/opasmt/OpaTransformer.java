@@ -91,6 +91,8 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
         return CONFIG;
     }
 
-    @Override public void close() {}
+    @Override public void close() {
+        opaModule.close();
+    }
 
 }
