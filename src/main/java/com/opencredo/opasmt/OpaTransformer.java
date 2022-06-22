@@ -32,16 +32,13 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
         String opaBundlePath = config.getString(OPA_BUNDLE_PATH_FIELD);
 
         try {
-            System.out.println("**Loading bundle from " + opaBundlePath);
+            System.out.println("Configuring OPATransformer against bundle path: " + opaBundlePath);
             Bundle bundle = BundleUtil.extractBundle(opaBundlePath);
             opaModule = new OPAModule(bundle);
-            System.out.println("** opaModule set to "+opaModule);
-            System.out.println("Entrypoints: " + opaModule.getEntrypoints().keySet());
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error configuring OPATransformer", e);
         }
     }
-
 
     @Override
     public R apply(R record) {
@@ -64,9 +61,7 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
     }
 
     private String recordToJson(R record) {
-        // TODO understand what this purpose field is as the 2nd argument
-        //var values = requireMap(record, "Filtering objects");
-        SourceRecord sourceRecord =(SourceRecord)record;
+        SourceRecord sourceRecord = (SourceRecord) record;
         Object value = sourceRecord.value();
         System.out.println("recordToJson: " + value.getClass().getName() + ": " + value);
         Struct valueStruct = (Struct) value;
@@ -75,8 +70,6 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
         for(Field field : valueSchema.fields()) {
             System.out.println(field.name() + " type: " + field.schema().getClass().getName() +  " " + field.schema().type() + " val: "+ valueStruct.get(field));
         }
-
-        StringBuilder ret = new StringBuilder();
 
         var fields = valueSchema.fields().stream().map( field -> {
             StringBuilder fieldString = new StringBuilder();
@@ -90,12 +83,8 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
             return fieldString.toString();
         }).collect(Collectors.joining(", "));
 
-        ret.append("{ ");
-        ret.append(fields);
-        ret.append("}");
-        return ret.toString();
+        return "{ " + fields + " }";
     }
-
 
     @Override
     public ConfigDef config() {

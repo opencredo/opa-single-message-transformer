@@ -22,11 +22,11 @@ transforms.opa.opaBundlePath=/Users/mfarrow/code/opa-single-message-transformer/
 
 ## Parameters
 
-| Name          | Description                                                |
-|---------------|------------------------------------------------------------|
-| opaBundlePath | The path to the OPA bundle that the transfomer should use. |
+| Name          | Description                                                 |
+|---------------|-------------------------------------------------------------|
+| opaBundlePath | The path to the OPA bundle that the transformer should use. |
 
 
-The example bundle included is currently built manually from the rego file:
+The example bundle included is currently built manually from the .rego file:
 
 `opa build -t wasm -e kafka/filter rego.rego`
