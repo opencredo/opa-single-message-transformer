@@ -16,8 +16,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.apache.kafka.connect.transforms.util.Requirements.requireMap;
-
 public class OpaTransformer<R extends ConnectRecord<R>> implements Transformation<R> {
 
     public static final String OPA_BUNDLE_PATH_FIELD = "opaBundlePath";
@@ -47,18 +45,18 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
 
     @Override
     public R apply(R record) {
-        String input = recordToJson(record);
-        System.out.println("**OpaTransformer.apply() for " +record.value());
-        String result = opaModule.evaluate(input, "kafka/filter");
-        System.out.println("OPA response: " + result);
+        String opaInput = recordToJson(record);
+        System.out.println("** OPA input: " + opaInput);
+        String opaResponse = opaModule.evaluate(opaInput, "kafka/filter");
+        System.out.println("** OPA response: " + opaResponse);
 
         var falseStr = "[{\"result\":false}]";
         var trueStr = "[{\"result\":true}]";
-        if(result.equals(falseStr)) {
+        if(opaResponse.equals(falseStr)) {
             System.out.println("returning record");
             return record;
         }
-        if(result.equals(trueStr)) {
+        if(opaResponse.equals(trueStr)) {
             System.out.println("returning null");
             return null;
         }
@@ -75,7 +73,7 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
 
         var valueSchema = record.valueSchema();
         for(Field field : valueSchema.fields()) {
-            System.out.println(field.name() + " type: " + field.schema().getClass().getName() + " val: "+ valueStruct.get(field));
+            System.out.println(field.name() + " type: " + field.schema().getClass().getName() +  " " + field.schema().type() + " val: "+ valueStruct.get(field));
         }
 
         StringBuilder ret = new StringBuilder();
