@@ -42,7 +42,7 @@ public class TestOpaTransformer {
     }
 
     private OpaTransformer<SourceRecord> buildTransformer() {
-        var properties = Map.of(OpaTransformer.OPA_BUNDLE_PATH_FIELD, "bundle.tar.gz");
+        var properties = Map.of(OpaTransformer.OPA_BUNDLE_PATH_FIELD, "example/bundle.tar.gz");
 
         var transformer = new OpaTransformer<SourceRecord>();
         transformer.configure(properties);
