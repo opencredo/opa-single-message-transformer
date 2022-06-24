@@ -18,16 +18,17 @@ It is intended to be use with either a source or sink Kafka Connect component.
 transforms=opa
 transforms.opa.type=OpaTransformer
 transforms.opa.bundlePath=/Users/mfarrow/code/opa-single-message-transformer/example/bundle.tar.gz
-transforms.opa.filteringEntryPoint=kafka/filter
+transforms.opa.filteringEntrypoint=kafka/filter
+transforms.opa.maskingEntrypoint=kafka/maskingEntryPoint
 ```
 
 ## Parameters
 
-| Name                | Description                                                  |
-|---------------------|--------------------------------------------------------------|
-| bundlePath          | The path to the OPA bundle that the transformer should use.  |
-| filteringEntrypoint | The entrypoint that specifies whether to filter out a record |
-
+| Name                | Description                                                                                                   |
+|---------------------|---------------------------------------------------------------------------------------------------------------|
+| bundlePath          | The path to the OPA bundle that the transformer should use.                                                   |
+| filteringEntrypoint | The OPA entrypoint that specifies whether to filter out a record                                              |
+| maskingEntrypoint   | The OPA endpoint that specifies either the value to mask a field as, or null if no masking is to be performed |
 
 The example bundle included is currently built manually from the .rego file:
 
