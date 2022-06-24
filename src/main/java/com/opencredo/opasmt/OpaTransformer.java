@@ -1,21 +1,15 @@
 package com.opencredo.opasmt;
 
-import io.github.sangkeon.opa.wasm.Bundle;
-import io.github.sangkeon.opa.wasm.BundleUtil;
-import io.github.sangkeon.opa.wasm.OPAModule;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.ConnectRecord;
 import org.apache.kafka.connect.data.Field;
-import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.transforms.Transformation;
 import org.apache.kafka.connect.transforms.util.SimpleConfig;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class OpaTransformer<R extends ConnectRecord<R>> implements Transformation<R> {
 
@@ -29,9 +23,7 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
                     .define(FILTERING_ENTRYPOINT_CONFIG, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "Entrypoint specifying whether to filter a record")
                     .define(MASKING_ENTRYPOINT_CONFIG, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "Entrypoint specifying whether to mask a field");
 
-    private OPAModule opaModule;
-    private String opaFilteringEntrypoint;
-    private String maskingEntrypoint;
+    private OpaClient opaClient;
 
     // The key should be a JSONPath?
     private final Map<String, Optional<String>> fieldToMask = new HashMap<>();
@@ -39,45 +31,16 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
     @Override
     public void configure(Map<String, ?> props) {
         final SimpleConfig config = new SimpleConfig(CONFIG, props);
-        String opaBundlePath = config.getString(BUNDLE_PATH_FIELD_CONFIG);
-        opaFilteringEntrypoint = config.getString(FILTERING_ENTRYPOINT_CONFIG);
-        maskingEntrypoint = config.getString(MASKING_ENTRYPOINT_CONFIG);
-
-        try {
-            System.out.println("Configuring OPATransformer against bundle path: " + opaBundlePath);
-            Bundle bundle = BundleUtil.extractBundle(opaBundlePath);
-            opaModule = new OPAModule(bundle);
-        } catch (IOException e) {
-            throw new RuntimeException("Error configuring OPATransformer", e);
-        }
-
-        System.out.println("OPA entrypoints available: " + opaModule.getEntrypoints());
+        opaClient = new OpaClient(config.getString(BUNDLE_PATH_FIELD_CONFIG), config.getString(FILTERING_ENTRYPOINT_CONFIG), config.getString(MASKING_ENTRYPOINT_CONFIG));
     }
 
     @Override
     public R apply(R record) {
-        String opaInput = recordToJson(record);
-        System.out.println("** OPA filter input: " + opaInput);
-        String opaResponse = opaModule.evaluate(opaInput, opaFilteringEntrypoint);
-        System.out.println("** OPA filter response: " + opaResponse);
-
-        if(shouldFilterOut(opaResponse)) {
+        if(opaClient.shouldFilterOut(record)) {
             return null;
         }
 
         return applyMasking(record);
-    }
-
-    private boolean shouldFilterOut(String opaResponse) {
-        // Try to avoid having to parse the String
-        if(opaResponse.equals("[{\"result\":true}]")) {
-            return true;
-        }
-        if(opaResponse.equals("[{\"result\":false}]")) {
-            return false;
-        }
-
-        return OpaResultParser.parseBooleanResult(opaResponse);
     }
 
     private R applyMasking(R record) {
@@ -102,13 +65,7 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
             return mask;
         }
 
-        String requestJson = "{ \"fieldName\": \"" +field.name()+ "\" }";
-
-        String maskingRawResp = opaModule.evaluate(requestJson, maskingEntrypoint);
-
-        System.out.println("OPA masking response: " + maskingRawResp);
-        Optional<String> masking = Optional.ofNullable(OpaResultParser.parseStringResult(maskingRawResp));
-
+        Optional<String> masking = opaClient.getMaskingReplacement(field.name());
         fieldToMask.put(field.name(), masking);
         return masking;
     }
@@ -123,38 +80,14 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
         throw new IllegalArgumentException("Unable to get a value from record of type "+ record.getClass().getName());
     }
 
-    private String recordToJson(R record) {
-        var value = record.value();
-        System.out.println("recordToJson: " + value.getClass().getName() + ": " + value);
-        Struct valueStruct = (Struct) value;
-
-        var valueSchema = record.valueSchema();
-        for(Field field : valueSchema.fields()) {
-            System.out.println(field.name() + " type: " + field.schema().getClass().getName() +  " " + field.schema().type() + " val: "+ valueStruct.get(field));
-        }
-
-        var fields = valueSchema.fields().stream().map( field -> {
-            StringBuilder fieldString = new StringBuilder();
-            fieldString.append('\"').append(field.name()).append("\": ");
-
-            if (field.schema().type() == Schema.Type.STRING) {
-                fieldString.append('"').append(valueStruct.get(field)).append('"');
-            } else {
-                fieldString.append(valueStruct.get(field));
-            }
-            return fieldString.toString();
-        }).collect(Collectors.joining(", "));
-
-        return "{ " + fields + " }";
-    }
-
     @Override
     public ConfigDef config() {
         return CONFIG;
     }
 
-    @Override public void close() {
-        opaModule.close();
+    @Override
+    public void close() {
+        opaClient.close();
     }
 
 }
