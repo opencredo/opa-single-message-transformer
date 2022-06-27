@@ -7,6 +7,8 @@ import org.apache.kafka.connect.source.SourceRecord;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class TestOpaTransformer {
@@ -99,6 +101,59 @@ public class TestOpaTransformer {
         Assert.assertEquals("Hope Street", actualAddress.get("street"));
         Assert.assertEquals("anon city", actualAddress.get("city"));
     }
+
+    @Test
+    public void testArrayFieldMasking() {
+        OpaTransformer<SourceRecord> transformer = buildTransformer();
+
+        Schema petSchema = SchemaBuilder.struct().name("test schema")
+                .field("name", Schema.STRING_SCHEMA)
+                .field("species", Schema.STRING_SCHEMA)
+                .field("colour", Schema.STRING_SCHEMA)
+                .build();
+
+        Schema valueSchema = SchemaBuilder.struct().name("test schema")
+                .field("phone", Schema.STRING_SCHEMA)
+                .field("personal", Schema.BOOLEAN_SCHEMA)
+                .field("name", Schema.STRING_SCHEMA)
+                .field("pets", SchemaBuilder.array(petSchema).build())
+                .build();
+
+        var pet1 = new Struct(petSchema);
+        pet1.put("name", "Simon");
+        pet1.put("species", "Dog");
+        pet1.put("colour", "Brown");
+
+        var pet2 = new Struct(petSchema);
+        pet2.put("name", "Sally");
+        pet2.put("species", "Cat");
+        pet2.put("colour", "Cream");
+
+        var value = new Struct(valueSchema);
+        value.put("name", "person1");
+        value.put("personal", false);
+        value.put("phone", "020 8765 4321");
+        value.put("pets", Arrays.asList(pet1, pet2));
+        var record = new SourceRecord(Map.of(), Map.of(), "topic", valueSchema, value);
+
+        var actual = transformer.apply(record);
+        Struct actualValue = (Struct) actual.value();
+        Assert.assertEquals("person1", actualValue.get("name"));
+        Assert.assertEquals(false, actualValue.get("personal"));
+        Assert.assertEquals("000 0000 0000", actualValue.get("phone"));
+
+        List<Struct> pets = (List<Struct>) actualValue.get("pets");
+
+        Assert.assertEquals("Simon", pets.get(0).get("name"));
+        Assert.assertEquals("* * * *", pets.get(0).get("species"));
+        Assert.assertEquals("Brown", pets.get(0).get("colour"));
+
+        Assert.assertEquals("Sally", pets.get(1).get("name"));
+        Assert.assertEquals("* * * *", pets.get(1).get("species"));
+        Assert.assertEquals("Cream", pets.get(1).get("colour"));
+    }
+
+
 
     private OpaTransformer<SourceRecord> buildTransformer() {
         var properties = Map.of(

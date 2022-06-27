@@ -9,7 +9,8 @@ filter {
 maskingByField = {
 	"pii" : "****",
     "phone": "000 0000 0000",
-    "address.city": "anon city"
+    "address.city": "anon city",
+    "pets[*].species": "* * * *"
 }
 
 maskingConfig[field] {

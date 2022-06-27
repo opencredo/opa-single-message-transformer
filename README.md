@@ -33,3 +33,25 @@ transforms.opa.maskingEntrypoint=kafka/maskingEntryPoint
 The example bundle included is currently built manually from the .rego file:
 
 `opa build -t wasm -e kafka/filter rego.rego`
+
+## Masking configuration in rego
+
+Here we are masking four fields.
+
+```
+maskingByField = {
+    "pii" : "****",
+    "phone": "000 0000 0000",
+    "address.city": "anon city",
+    "pets[*].species": "* * * *"
+}
+```
+
+
+### Masking object fields
+'city' is a field on the 'address' object.  It is referenced using dot notation.
+
+### Masking ields on array elements
+It is possible to mask fields on arrays.
+All elements of an array will have that field masked.
+In the example, all elements in the 'pets' array have their species field masked.

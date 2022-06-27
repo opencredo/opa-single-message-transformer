@@ -8,9 +8,8 @@ import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.transforms.Transformation;
 import org.apache.kafka.connect.transforms.util.SimpleConfig;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class OpaTransformer<R extends ConnectRecord<R>> implements Transformation<R> {
 
@@ -45,16 +44,22 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
     }
 
     private R applyMasking(R record) {
-        Object maskedValue = maskInternal(record.valueSchema(), record.value(), "");
+        Object maskedValue = maskRecursively(record.valueSchema(), record.value(), "");
         return record.newRecord(record.topic(), record.kafkaPartition(), record.keySchema(), record.key(), record.valueSchema(), maskedValue, null);
     }
 
-    private Object maskInternal(Schema valueSchema, Object value, String prefixThenDot) {
+    private Object maskRecursively(Schema valueSchema, Object value, String prefixThenDot) {
         System.out.println("maskInternal called with prefixThenDot "+prefixThenDot);
         final Struct maskedObject = new Struct(valueSchema);
         for (Field field : valueSchema.fields()) {
             if(field.schema().type()== Schema.Type.STRUCT) {
-                maskedObject.put(field.name(), maskInternal(field.schema(), getValue(value, field), prefixThenDot + field.name()+"."));
+                maskedObject.put(field.name(), maskRecursively(field.schema(), getValue(value, field), prefixThenDot + field.name()+"."));
+            } else if (field.schema().type().equals(Schema.Type.ARRAY)) {
+                List<Object> unmasked = (List<Object>) getValue(value, field);
+                List<Object> masked = unmasked.stream()
+                        .map(u -> maskRecursively(field.schema().valueSchema(), u, prefixThenDot+field.name()+"[*]."))
+                        .collect(Collectors.toList());
+                maskedObject.put(field.name(), masked);
             } else {
                 Optional<String> mask = getMask(prefixThenDot + field.name());
                 System.out.println("Mask for field " + (prefixThenDot + field.name()) + " is " + mask);
