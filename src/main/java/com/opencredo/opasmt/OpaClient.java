@@ -35,7 +35,7 @@ public class OpaClient {
 
 
     public  boolean shouldFilterOut(ConnectRecord<?> record) {
-        String opaInput = recordToJson(record);
+        String opaInput = ConnectRecordToJson.convert(record);
         System.out.println("** OPA filter input: " + opaInput);
         String opaResponse = opaModule.evaluate(opaInput, opaFilteringEntrypoint);
         System.out.println("** OPA filter response: " + opaResponse);
@@ -50,30 +50,7 @@ public class OpaClient {
         return Optional.ofNullable(OpaResultParser.parseStringResult(maskingRawResp));
     }
 
-    private String recordToJson(ConnectRecord<?> record) {
-        var value = record.value();
-        System.out.println("recordToJson: " + value.getClass().getName() + ": " + value);
-        Struct valueStruct = (Struct) value;
 
-        var valueSchema = record.valueSchema();
-        for(Field field : valueSchema.fields()) {
-            System.out.println(field.name() + " type: " + field.schema().getClass().getName() +  " " + field.schema().type() + " val: "+ valueStruct.get(field));
-        }
-
-        var fields = valueSchema.fields().stream().map( field -> {
-            StringBuilder fieldString = new StringBuilder();
-            fieldString.append('\"').append(field.name()).append("\": ");
-
-            if (field.schema().type() == Schema.Type.STRING) {
-                fieldString.append('"').append(valueStruct.get(field)).append('"');
-            } else {
-                fieldString.append(valueStruct.get(field));
-            }
-            return fieldString.toString();
-        }).collect(Collectors.joining(", "));
-
-        return "{ " + fields + " }";
-    }
 
     public void close() {
         opaModule.close();

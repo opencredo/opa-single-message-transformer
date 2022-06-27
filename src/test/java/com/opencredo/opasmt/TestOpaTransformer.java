@@ -14,8 +14,8 @@ import java.util.Map;
 public class TestOpaTransformer {
 
     @Test
-    public void testOpaTransformerFiltersOut() {
-        OpaTransformer<SourceRecord> transformer = buildTransformer();
+    public void testFilteringRecordsOut() {
+        OpaTransformer<SourceRecord> transformer = buildTransformer(EXAMPLE_BUNDLE);
 
         Schema valueSchema = SchemaBuilder.struct().name("test schema").field("personal", Schema.BOOLEAN_SCHEMA).field("name", Schema.STRING_SCHEMA).build();
 
@@ -29,8 +29,8 @@ public class TestOpaTransformer {
     }
 
     @Test
-    public void testOpaTransformerDoesntFilter() {
-        OpaTransformer<SourceRecord> transformer = buildTransformer();
+    public void testNotFilteringRecordsOut() {
+        OpaTransformer<SourceRecord> transformer = buildTransformer(EXAMPLE_BUNDLE);
 
         Schema valueSchema = SchemaBuilder.struct().name("test schema").field("personal", Schema.BOOLEAN_SCHEMA).field("name", Schema.STRING_SCHEMA).build();
 
@@ -44,8 +44,74 @@ public class TestOpaTransformer {
     }
 
     @Test
+    public void testFilteringBasedOnRecordsOnNestedFields() {
+        OpaTransformer<SourceRecord> transformer = buildTransformer(BUNDLE_WITH_NESTED_OBJECT_FILTERING);
+
+        Schema addressSchema = SchemaBuilder.struct().name("test schema")
+                .field("building", Schema.INT32_SCHEMA)
+                .field("street", Schema.STRING_SCHEMA)
+                .field("city", Schema.STRING_SCHEMA)
+                .field("personal", Schema.BOOLEAN_SCHEMA)
+                .build();
+
+        Schema valueSchema = SchemaBuilder.struct().name("test schema")
+                .field("phone", Schema.STRING_SCHEMA)
+                .field("name", Schema.STRING_SCHEMA)
+                .field("address", addressSchema)
+                .build();
+
+        var address = new Struct(addressSchema);
+        address.put("building", 131);
+        address.put("street", "Hope Street");
+        address.put("city", "london");
+        address.put("personal", true);
+
+        var value = new Struct(valueSchema);
+        value.put("name", "person1");
+        value.put("phone", "020 8765 4321");
+        value.put("address", address);
+        var record = new SourceRecord(Map.of(), Map.of(), "topic", valueSchema, value);
+
+        var actual = transformer.apply(record);
+        Assert.assertNull(actual);
+    }
+
+    @Test
+    public void testNotFilteringBasedOnRecordsOnNestedFields() {
+        OpaTransformer<SourceRecord> transformer = buildTransformer(BUNDLE_WITH_NESTED_OBJECT_FILTERING);
+
+        Schema addressSchema = SchemaBuilder.struct().name("test schema")
+                .field("building", Schema.INT32_SCHEMA)
+                .field("street", Schema.STRING_SCHEMA)
+                .field("city", Schema.STRING_SCHEMA)
+                .build();
+
+        Schema valueSchema = SchemaBuilder.struct().name("test schema")
+                .field("phone", Schema.STRING_SCHEMA)
+                .field("personal", Schema.BOOLEAN_SCHEMA)
+                .field("name", Schema.STRING_SCHEMA)
+                .field("address", addressSchema)
+                .build();
+
+        var address = new Struct(addressSchema);
+        address.put("building", 131);
+        address.put("street", "Hope Street");
+        address.put("city", "london");
+
+        var value = new Struct(valueSchema);
+        value.put("name", "person1");
+        value.put("personal", false);
+        value.put("phone", "020 8765 4321");
+        value.put("address", address);
+        var record = new SourceRecord(Map.of(), Map.of(), "topic", valueSchema, value);
+
+        var actual = transformer.apply(record);
+        Assert.assertEquals(actual, record);
+    }
+
+    @Test
     public void testFieldMasking() {
-        OpaTransformer<SourceRecord> transformer = buildTransformer();
+        OpaTransformer<SourceRecord> transformer = buildTransformer(EXAMPLE_BUNDLE);
 
         Schema valueSchema = SchemaBuilder.struct().name("test schema").field("phone", Schema.STRING_SCHEMA).field("personal", Schema.BOOLEAN_SCHEMA).field("name", Schema.STRING_SCHEMA).build();
 
@@ -63,7 +129,7 @@ public class TestOpaTransformer {
 
     @Test
     public void testObjectFieldMasking() {
-        OpaTransformer<SourceRecord> transformer = buildTransformer();
+        OpaTransformer<SourceRecord> transformer = buildTransformer(EXAMPLE_BUNDLE);
 
         Schema addressSchema = SchemaBuilder.struct().name("test schema")
                 .field("building", Schema.INT32_SCHEMA)
@@ -104,7 +170,7 @@ public class TestOpaTransformer {
 
     @Test
     public void testArrayFieldMasking() {
-        OpaTransformer<SourceRecord> transformer = buildTransformer();
+        OpaTransformer<SourceRecord> transformer = buildTransformer(EXAMPLE_BUNDLE);
 
         Schema petSchema = SchemaBuilder.struct().name("test schema")
                 .field("name", Schema.STRING_SCHEMA)
@@ -154,10 +220,12 @@ public class TestOpaTransformer {
     }
 
 
+    private static final String EXAMPLE_BUNDLE = "example/bundle.tar.gz";
+    private static final String BUNDLE_WITH_NESTED_OBJECT_FILTERING = "src/test/resources/nestedFilterRego/bundle.tar.gz";
 
-    private OpaTransformer<SourceRecord> buildTransformer() {
+    private OpaTransformer<SourceRecord> buildTransformer(String testBundle) {
         var properties = Map.of(
-                OpaTransformer.BUNDLE_PATH_FIELD_CONFIG, "example/bundle.tar.gz",
+                OpaTransformer.BUNDLE_PATH_FIELD_CONFIG, testBundle,
                 OpaTransformer.FILTERING_ENTRYPOINT_CONFIG, "kafka/filter",
                 OpaTransformer.MASKING_ENTRYPOINT_CONFIG, "kafka/maskingConfig"
         );
