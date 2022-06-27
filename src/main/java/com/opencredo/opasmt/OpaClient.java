@@ -4,13 +4,9 @@ import io.github.sangkeon.opa.wasm.Bundle;
 import io.github.sangkeon.opa.wasm.BundleUtil;
 import io.github.sangkeon.opa.wasm.OPAModule;
 import org.apache.kafka.connect.connector.ConnectRecord;
-import org.apache.kafka.connect.data.Field;
-import org.apache.kafka.connect.data.Schema;
-import org.apache.kafka.connect.data.Struct;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class OpaClient {
 
@@ -35,7 +31,7 @@ public class OpaClient {
 
 
     public  boolean shouldFilterOut(ConnectRecord<?> record) {
-        String opaInput = ConnectRecordToJson.convert(record);
+        String opaInput = ConnectRecordToJson.convertRecord(record);
         System.out.println("** OPA filter input: " + opaInput);
         String opaResponse = opaModule.evaluate(opaInput, opaFilteringEntrypoint);
         System.out.println("** OPA filter response: " + opaResponse);
