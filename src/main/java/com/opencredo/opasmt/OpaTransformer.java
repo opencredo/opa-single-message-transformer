@@ -3,6 +3,7 @@ package com.opencredo.opasmt;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.ConnectRecord;
 import org.apache.kafka.connect.data.Field;
+import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.transforms.Transformation;
 import org.apache.kafka.connect.transforms.util.SimpleConfig;
@@ -44,40 +45,50 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
     }
 
     private R applyMasking(R record) {
-        final Struct updatedValue = new Struct(record.valueSchema());
+        Object maskedValue = maskInternal(record.valueSchema(), record.value(), "");
+        return record.newRecord(record.topic(), record.kafkaPartition(), record.keySchema(), record.key(), record.valueSchema(), maskedValue, null);
+    }
 
-        for (Field field : record.valueSchema().fields()) {
-            Optional<String> mask = getMask(field);
-            if(mask.isPresent()) {
-                updatedValue.put(field.name(), mask.get());
+    private Object maskInternal(Schema valueSchema, Object value, String prefixThenDot) {
+        System.out.println("maskInternal called with prefixThenDot "+prefixThenDot);
+        final Struct maskedObject = new Struct(valueSchema);
+        for (Field field : valueSchema.fields()) {
+            if(field.schema().type()== Schema.Type.STRUCT) {
+                maskedObject.put(field.name(), maskInternal(field.schema(), getValue(value, field), prefixThenDot + field.name()+"."));
             } else {
-                updatedValue.put(field.name(), getValue(record, field));
+                Optional<String> mask = getMask(prefixThenDot + field.name());
+                System.out.println("Mask for field " + (prefixThenDot + field.name()) + " is " + mask);
+                if (mask.isPresent()) {
+                    maskedObject.put(field.name(), mask.get());
+                } else {
+                    maskedObject.put(field.name(), getValue(value, field));
+                }
             }
         }
-
-        return record.newRecord(record.topic(), record.kafkaPartition(), record.keySchema(), record.key(), record.valueSchema(), updatedValue, null);
+        System.out.println("maskInternal returning "+maskedObject);
+        return maskedObject;
     }
 
     // None means "do not mask this field"
-    private Optional<String> getMask(Field field) {
-        Optional<String> mask = fieldToMask.get(field.name());
+    private Optional<String> getMask(String fieldName) {
+        Optional<String> mask = fieldToMask.get(fieldName);
         if (mask!=null) {
             return mask;
         }
 
-        Optional<String> masking = opaClient.getMaskingReplacement(field.name());
-        fieldToMask.put(field.name(), masking);
+        Optional<String> masking = opaClient.getMaskingReplacement(fieldName);
+        fieldToMask.put(fieldName, masking);
         return masking;
     }
 
-    private Object getValue(R record, Field field) {
-        if(record.value() instanceof Map r) {
+    private Object getValue(Object value, Field field) {
+        if(value instanceof Map r) {
             return r.get(field.name());
         }
-        if(record.value() instanceof Struct r) {
+        if(value instanceof Struct r) {
             return r.get(field);
         }
-        throw new IllegalArgumentException("Unable to get a value from record of type "+ record.getClass().getName());
+        throw new IllegalArgumentException("Unable to get a value from record of type "+ value.getClass().getName());
     }
 
     @Override

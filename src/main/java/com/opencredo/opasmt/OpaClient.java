@@ -46,7 +46,7 @@ public class OpaClient {
         String requestJson = "{ \"fieldName\": \"" +fieldName+ "\" }";
         String maskingRawResp = opaModule.evaluate(requestJson, maskingEntrypoint);
 
-        System.out.println("OPA masking response: " + maskingRawResp);
+        System.out.println("OPA masking response: " + maskingRawResp + " for request "+requestJson);
         return Optional.ofNullable(OpaResultParser.parseStringResult(maskingRawResp));
     }
 

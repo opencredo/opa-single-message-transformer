@@ -8,7 +8,8 @@ filter {
 
 maskingByField = {
 	"pii" : "****",
-    "phone": "000 0000 0000"
+    "phone": "000 0000 0000",
+    "address.city": "anon city"
 }
 
 maskingConfig[field] {
