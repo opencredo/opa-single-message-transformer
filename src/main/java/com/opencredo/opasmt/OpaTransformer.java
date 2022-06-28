@@ -25,12 +25,12 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
 
     private OpaClient opaClient;
 
-    // The key should be a JSONPath?
-    private final Map<String, Optional<String>> fieldToMask = new HashMap<>();
+    // None means "do not mask this field"
+    private final Map<String, Optional<String>> fieldPathToOptionalMaskCache = new HashMap<>();
 
     @Override
     public void configure(Map<String, ?> props) {
-        final SimpleConfig config = new SimpleConfig(CONFIG, props);
+        var config = new SimpleConfig(CONFIG, props);
         opaClient = new OpaClient(config.getString(BUNDLE_PATH_FIELD_CONFIG), config.getString(FILTERING_ENTRYPOINT_CONFIG), config.getString(MASKING_ENTRYPOINT_CONFIG));
     }
 
@@ -49,7 +49,6 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
     }
 
     private Object maskRecursively(Schema valueSchema, Object value, String prefixThenDot) {
-        System.out.println("maskInternal called with prefixThenDot "+prefixThenDot);
         final Struct maskedObject = new Struct(valueSchema);
         for (Field field : valueSchema.fields()) {
             if(field.schema().type()== Schema.Type.STRUCT) {
@@ -70,19 +69,17 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
                 }
             }
         }
-        System.out.println("maskInternal returning "+maskedObject);
         return maskedObject;
     }
 
-    // None means "do not mask this field"
     private Optional<String> getMask(String fieldName) {
-        Optional<String> mask = fieldToMask.get(fieldName);
+        Optional<String> mask = fieldPathToOptionalMaskCache.get(fieldName);
         if (mask!=null) {
             return mask;
         }
 
         Optional<String> masking = opaClient.getMaskingReplacement(fieldName);
-        fieldToMask.put(fieldName, masking);
+        fieldPathToOptionalMaskCache.put(fieldName, masking);
         return masking;
     }
 
