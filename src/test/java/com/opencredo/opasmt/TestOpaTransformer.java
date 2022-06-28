@@ -169,6 +169,43 @@ public class TestOpaTransformer {
     }
 
     @Test
+    public void testMapFieldMasking() {
+        OpaTransformer<SourceRecord> transformer = buildTransformer(EXAMPLE_BUNDLE);
+
+        Schema addressSchema = SchemaBuilder.struct()
+                .field("building", Schema.INT32_SCHEMA)
+                .field("street", Schema.STRING_SCHEMA)
+                .build();
+
+        Schema valueSchema = SchemaBuilder.map(Schema.STRING_SCHEMA, addressSchema);
+
+        var bobAddress = new Struct(addressSchema);
+        bobAddress.put("building", 131);
+        bobAddress.put("street", "Hope Street");
+
+        var stuartAddress = new Struct(addressSchema);
+        stuartAddress.put("building", 222);
+        stuartAddress.put("street", "Glasgow Street");
+
+        var value = Map.of("bob", bobAddress, "stuart", stuartAddress);
+
+        var record = new SourceRecord(Map.of(), Map.of(), "topic", valueSchema, value);
+
+        var actual = transformer.apply(record);
+
+        Map<String, Struct>  map = (Map<String, Struct>) actual.value();
+        Struct bobActual = map.get("bob");
+        Assert.assertEquals(bobActual.get("building"), 131);
+        Assert.assertEquals(bobActual.get("street"), "a secret street");
+
+        Struct stuartActual = map.get("stuart");
+        Assert.assertEquals(stuartActual.get("building"), 222);
+        Assert.assertEquals(stuartActual.get("street"), "Glasgow Street");
+        // TODO actually test masking
+    }
+
+
+    @Test
     public void testArrayFieldMasking() {
         OpaTransformer<SourceRecord> transformer = buildTransformer(EXAMPLE_BUNDLE);
 

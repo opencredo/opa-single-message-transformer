@@ -36,14 +36,15 @@ The example bundle included is currently built manually from the .rego file:
 
 ## Masking configuration in rego
 
-Here we are masking four fields.
+Here we are masking several fields.
 
 ```
 maskingByField = {
     "pii" : "****",
     "phone": "000 0000 0000",
     "address.city": "anon city",
-    "pets[*].species": "* * * *"
+    "pets[*].species": "* * * *",
+    "['bob'].street": "a secret street"
 }
 ```
 
@@ -51,7 +52,10 @@ maskingByField = {
 ### Masking object fields
 'city' is a field on the 'address' object.  It is referenced using dot notation.
 
-### Masking ields on array elements
+### Masking fields on array elements
 It is possible to mask fields on arrays.
-All elements of an array will have that field masked.
+All elements of the array will have that field masked.
 In the example, all elements in the 'pets' array have their species field masked.
+
+### Masking fields that are map values
+In the example above, we mask the 'street' field that is on a struct that was the value in a map that associated with the key 'bob'.

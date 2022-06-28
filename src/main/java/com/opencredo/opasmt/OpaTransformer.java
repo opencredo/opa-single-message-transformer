@@ -48,28 +48,33 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
         return record.newRecord(record.topic(), record.kafkaPartition(), record.keySchema(), record.key(), record.valueSchema(), maskedValue, null);
     }
 
-    private Object maskRecursively(Schema valueSchema, Object value, String prefixThenDot) {
-        final Struct maskedObject = new Struct(valueSchema);
-        for (Field field : valueSchema.fields()) {
-            if(field.schema().type()== Schema.Type.STRUCT) {
-                maskedObject.put(field.name(), maskRecursively(field.schema(), getValue(value, field), prefixThenDot + field.name()+"."));
-            } else if (field.schema().type().equals(Schema.Type.ARRAY)) {
-                List<Object> unmasked = (List<Object>) getValue(value, field);
-                List<Object> masked = unmasked.stream()
-                        .map(u -> maskRecursively(field.schema().valueSchema(), u, prefixThenDot+field.name()+"[*]."))
-                        .collect(Collectors.toList());
-                maskedObject.put(field.name(), masked);
+    private Object maskRecursively(Schema valueSchema, Object value, String prefix) {
+        if (valueSchema.type() == Schema.Type.STRUCT) {
+            final Struct maskedObject = new Struct(valueSchema);
+            for (Field field : valueSchema.fields()) {
+                maskedObject.put(field.name(), maskRecursively(field.schema(), getValue(value, field), (prefix.length() == 0 ? "" : prefix + ".") + field.name()));
+            }
+            return maskedObject;
+        } else if (valueSchema.type().equals(Schema.Type.ARRAY)) {
+            List<Object> unmasked = (List<Object>) value;
+            return unmasked.stream()
+                    .map(u -> maskRecursively(valueSchema.valueSchema(), u, prefix + "[*]"))
+                    .collect(Collectors.toList());
+        } else if (valueSchema.type() == Schema.Type.MAP) {
+            Map<String,Object> unmasked = (Map<String,Object>) value;
+            return unmasked.entrySet().stream()
+                    .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), maskRecursively(valueSchema.valueSchema(), entry.getValue(), prefix+"['"+entry.getKey()+"']")))
+                    .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+        } else {
+            Optional<String> mask = getMask(prefix);
+            if (mask.isPresent()) {
+                return mask.get();
             } else {
-                Optional<String> mask = getMask(prefixThenDot + field.name());
-                System.out.println("Mask for field " + (prefixThenDot + field.name()) + " is " + mask);
-                if (mask.isPresent()) {
-                    maskedObject.put(field.name(), mask.get());
-                } else {
-                    maskedObject.put(field.name(), getValue(value, field));
-                }
+                return value;
             }
         }
-        return maskedObject;
+
+
     }
 
     private Optional<String> getMask(String fieldName) {

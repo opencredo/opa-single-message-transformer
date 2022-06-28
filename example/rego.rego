@@ -10,7 +10,8 @@ maskingByField = {
 	"pii" : "****",
     "phone": "000 0000 0000",
     "address.city": "anon city",
-    "pets[*].species": "* * * *"
+    "pets[*].species": "* * * *",
+    "['bob'].street": "a secret street"
 }
 
 maskingConfig[field] {
