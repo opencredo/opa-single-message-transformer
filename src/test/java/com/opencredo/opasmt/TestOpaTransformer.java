@@ -15,7 +15,7 @@ public class TestOpaTransformer {
 
     @Test
     public void testFilteringRecordsOut() {
-        OpaTransformer<SourceRecord> transformer = buildTransformer(EXAMPLE_BUNDLE);
+        OpaTransformer<SourceRecord> transformer = buildTransformer(SIMPLE_TEST_REGO);
 
         Schema valueSchema = SchemaBuilder.struct().name("test schema").field("personal", Schema.BOOLEAN_SCHEMA).field("name", Schema.STRING_SCHEMA).build();
 
@@ -30,7 +30,7 @@ public class TestOpaTransformer {
 
     @Test
     public void testNotFilteringRecordsOut() {
-        OpaTransformer<SourceRecord> transformer = buildTransformer(EXAMPLE_BUNDLE);
+        OpaTransformer<SourceRecord> transformer = buildTransformer(SIMPLE_TEST_REGO);
 
         Schema valueSchema = SchemaBuilder.struct().name("test schema").field("personal", Schema.BOOLEAN_SCHEMA).field("name", Schema.STRING_SCHEMA).build();
 
@@ -111,7 +111,7 @@ public class TestOpaTransformer {
 
     @Test
     public void testFieldMasking() {
-        OpaTransformer<SourceRecord> transformer = buildTransformer(EXAMPLE_BUNDLE);
+        OpaTransformer<SourceRecord> transformer = buildTransformer(SIMPLE_TEST_REGO);
 
         Schema valueSchema = SchemaBuilder.struct().name("test schema").field("phone", Schema.STRING_SCHEMA).field("personal", Schema.BOOLEAN_SCHEMA).field("name", Schema.STRING_SCHEMA).build();
 
@@ -129,7 +129,7 @@ public class TestOpaTransformer {
 
     @Test
     public void testObjectFieldMasking() {
-        OpaTransformer<SourceRecord> transformer = buildTransformer(EXAMPLE_BUNDLE);
+        OpaTransformer<SourceRecord> transformer = buildTransformer(SIMPLE_TEST_REGO);
 
         Schema addressSchema = SchemaBuilder.struct().name("test schema")
                 .field("building", Schema.INT32_SCHEMA)
@@ -170,7 +170,7 @@ public class TestOpaTransformer {
 
     @Test
     public void testMapFieldMasking() {
-        OpaTransformer<SourceRecord> transformer = buildTransformer(EXAMPLE_BUNDLE);
+        OpaTransformer<SourceRecord> transformer = buildTransformer(SIMPLE_TEST_REGO);
 
         Schema addressSchema = SchemaBuilder.struct()
                 .field("building", Schema.INT32_SCHEMA)
@@ -207,7 +207,7 @@ public class TestOpaTransformer {
 
     @Test
     public void testArrayFieldMasking() {
-        OpaTransformer<SourceRecord> transformer = buildTransformer(EXAMPLE_BUNDLE);
+        OpaTransformer<SourceRecord> transformer = buildTransformer(SIMPLE_TEST_REGO);
 
         Schema petSchema = SchemaBuilder.struct().name("test schema")
                 .field("name", Schema.STRING_SCHEMA)
@@ -257,7 +257,7 @@ public class TestOpaTransformer {
     }
 
 
-    private static final String EXAMPLE_BUNDLE = "example/bundle.tar.gz";
+    private static final String SIMPLE_TEST_REGO = "src/test/resources/testRego/bundle.tar.gz";
     private static final String BUNDLE_WITH_NESTED_OBJECT_FILTERING = "src/test/resources/nestedFilterRego/bundle.tar.gz";
 
     private OpaTransformer<SourceRecord> buildTransformer(String testBundle) {

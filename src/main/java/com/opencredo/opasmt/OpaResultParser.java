@@ -4,7 +4,7 @@ import org.json.JSONArray;
 
 public class OpaResultParser {
 
-    //  example: [{"result":["000 0000 0000"]}]
+    //  testRego: [{"result":["000 0000 0000"]}]
     public static String parseStringResult(String in) {
         JSONArray arr = new JSONArray(in);
         var obj = arr.getJSONObject(0);
@@ -15,7 +15,7 @@ public class OpaResultParser {
         return resultArray.getString(0);
     }
 
-    //  example: [{"result":[false]}]
+    //  testRego: [{"result":[false]}]
     public static boolean parseBooleanResult(String in) {
         JSONArray arr = new JSONArray(in);
         var obj = arr.getJSONObject(0);
