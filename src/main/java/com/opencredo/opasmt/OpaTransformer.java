@@ -8,6 +8,7 @@ import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.transforms.Transformation;
 import org.apache.kafka.connect.transforms.util.SimpleConfig;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,13 +26,14 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
 
     private OpaClient opaClient;
 
-    // None means "do not mask this field"
-    private final Map<String, Optional<String>> fieldPathToOptionalMaskCache = new HashMap<>();
-
     @Override
     public void configure(Map<String, ?> props) {
         var config = new SimpleConfig(CONFIG, props);
-        opaClient = new OpaClient(config.getString(BUNDLE_PATH_FIELD_CONFIG), config.getString(FILTERING_ENTRYPOINT_CONFIG), config.getString(MASKING_ENTRYPOINT_CONFIG));
+        try {
+            opaClient = new OpaClient(config.getString(BUNDLE_PATH_FIELD_CONFIG), config.getString(FILTERING_ENTRYPOINT_CONFIG), config.getString(MASKING_ENTRYPOINT_CONFIG));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -73,18 +75,10 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
                 return value;
             }
         }
-
-
     }
 
     private Optional<String> getMask(String fieldName) {
-        Optional<String> mask = fieldPathToOptionalMaskCache.get(fieldName);
-        if (mask!=null) {
-            return mask;
-        }
-
         Optional<String> masking = opaClient.getMaskingReplacement(fieldName);
-        fieldPathToOptionalMaskCache.put(fieldName, masking);
         return masking;
     }
 

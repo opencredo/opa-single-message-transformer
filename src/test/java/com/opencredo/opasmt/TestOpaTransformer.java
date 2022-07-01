@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static com.opencredo.opasmt.OPATest.buildTransformer;
+
 public class TestOpaTransformer {
 
     @Test
@@ -259,18 +261,5 @@ public class TestOpaTransformer {
 
     private static final String SIMPLE_TEST_REGO = "src/test/resources/testRego/bundle.tar.gz";
     private static final String BUNDLE_WITH_NESTED_OBJECT_FILTERING = "src/test/resources/nestedFilterRego/bundle.tar.gz";
-
-    private OpaTransformer<SourceRecord> buildTransformer(String testBundle) {
-        var properties = Map.of(
-                OpaTransformer.BUNDLE_PATH_FIELD_CONFIG, testBundle,
-                OpaTransformer.FILTERING_ENTRYPOINT_CONFIG, "kafka/filter",
-                OpaTransformer.MASKING_ENTRYPOINT_CONFIG, "kafka/maskingConfig"
-        );
-
-        var transformer = new OpaTransformer<SourceRecord>();
-        transformer.configure(properties);
-        return transformer;
-    }
-
 
 }
