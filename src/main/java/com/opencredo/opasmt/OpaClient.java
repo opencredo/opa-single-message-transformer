@@ -1,21 +1,16 @@
 package com.opencredo.opasmt;
 
-import io.github.sangkeon.opa.wasm.BundleUtil;
 import io.github.sangkeon.opa.wasm.OPAModule;
 import org.apache.kafka.connect.connector.ConnectRecord;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+public class OpaClient implements BundleChangeListener{
 
-public class OpaClient {
-
-    private File opaBundleFile;
+    private final BundleSource bundleSource;
     private final String opaFilteringEntrypoint;
     private final String maskingEntrypoint;
 
@@ -23,52 +18,26 @@ public class OpaClient {
     // state protected by the lock
     private OPAModule opaModule;
     private final Map<String, Optional<String>> fieldPathToOptionalMaskCache = new HashMap<>();
-    private volatile boolean closed = false;
 
-    public OpaClient(String opaBundlePath, String opaFilteringEntrypoint, String maskingEntrypoint) throws IOException {
-        this.opaBundleFile = new File(opaBundlePath);
+    public OpaClient(BundleSource bundleSource, String opaFilteringEntrypoint, String maskingEntrypoint) throws IOException {
+        this.bundleSource = bundleSource;
         this.opaFilteringEntrypoint = opaFilteringEntrypoint;
         this.maskingEntrypoint = maskingEntrypoint;
 
         restartWithNewBundleContents();
-        listenForFileSystemChanges();
 
-        System.out.println("OPATransformer running against bundle path: " + opaBundlePath);
         System.out.println("OPA entrypoints available: " + opaModule.getEntrypoints());
     }
 
     private void restartWithNewBundleContents() throws IOException {
         synchronized (lock) {
             fieldPathToOptionalMaskCache.clear();
-            opaModule = new OPAModule(BundleUtil.extractBundle(opaBundleFile.getAbsolutePath()));
+            opaModule = new OPAModule(bundleSource.getBundle());
         }
     }
 
-    private void listenForFileSystemChanges() {
-        new Thread(runnable).start();
-    }
-
-    private final Runnable runnable = () -> {
-        try {
-            var bundleFileParentDir = opaBundleFile.toPath().getParent();
-            WatchService watchService = FileSystems.getDefault().newWatchService();
-            bundleFileParentDir.register(watchService, ENTRY_MODIFY);
-
-            while (!closed) {
-                WatchKey key = watchService.take();
-                for (WatchEvent<?> event : key.pollEvents()) {
-                    Path changedFilePath = (Path) event.context();
-                    if(changedFilePath.getFileName().toString().equals(opaBundleFile.getName())) {
-                        reloadBundleFile();
-                    }
-                }
-            }
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    };
-
-    private void reloadBundleFile() {
+    @Override
+    public void bundleChanged() {
         System.out.println("Reloading bundle file");
         try {
             restartWithNewBundleContents();
@@ -110,7 +79,6 @@ public class OpaClient {
     public void close() {
         synchronized (lock) {
             opaModule.close();
-            closed = true;
         }
     }
 }
