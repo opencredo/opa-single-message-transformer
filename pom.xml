@@ -12,7 +12,7 @@
         <maven.compiler.source>18</maven.compiler.source>
         <maven.compiler.target>18</maven.compiler.target>
 
-        <kafkaconnect.version>2.1.1</kafkaconnect.version>
+        <kafkaconnect.version>3.1.0</kafkaconnect.version>
         <confluent.version>5.1.1</confluent.version>
     </properties>
 
@@ -55,7 +55,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.1</version>
+            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -67,7 +67,7 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>9.4.31.v20200723</version>
+            <version>11.0.9</version>
         </dependency>
 
     </dependencies>
