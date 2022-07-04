@@ -2,6 +2,8 @@ package com.opencredo.opasmt;
 
 import io.github.sangkeon.opa.wasm.Bundle;
 import io.github.sangkeon.opa.wasm.BundleUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,11 +15,13 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 public class FileBundleSource implements BundleSource{
 
+    Logger logger = LoggerFactory.getLogger(FileBundleSource.class);
+
     private File opaBundleFile;
     private final List<BundleChangeListener> bundleChangeListeners = new ArrayList<>();
 
     public FileBundleSource(File file) {
-        System.out.println("OPATransformer running against bundle path: " + file.getAbsolutePath());
+        logger.info("OPATransformer running against bundle path: " + file.getAbsolutePath());
         this.opaBundleFile = file;
         new Thread(runnable).start();
     }

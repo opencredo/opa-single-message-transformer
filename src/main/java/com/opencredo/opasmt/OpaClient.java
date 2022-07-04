@@ -2,6 +2,8 @@ package com.opencredo.opasmt;
 
 import io.github.sangkeon.opa.wasm.OPAModule;
 import org.apache.kafka.connect.connector.ConnectRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -9,6 +11,8 @@ import java.util.Map;
 import java.util.Optional;
 
 public class OpaClient implements BundleChangeListener{
+
+    Logger logger = LoggerFactory.getLogger(OpaClient.class);
 
     private final BundleSource bundleSource;
     private final String opaFilteringEntrypoint;
@@ -26,7 +30,7 @@ public class OpaClient implements BundleChangeListener{
 
         restartWithNewBundleContents();
 
-        System.out.println("OPA entrypoints available: " + opaModule.getEntrypoints());
+        logger.info("OPA entrypoints available: " + opaModule.getEntrypoints());
     }
 
     private void restartWithNewBundleContents() throws IOException {
@@ -38,7 +42,7 @@ public class OpaClient implements BundleChangeListener{
 
     @Override
     public void bundleChanged() {
-        System.out.println("Reloading bundle file");
+        logger.info("Reloading bundle file");
         try {
             restartWithNewBundleContents();
         } catch (IOException e) {
@@ -48,14 +52,14 @@ public class OpaClient implements BundleChangeListener{
 
     public  boolean shouldFilterOut(ConnectRecord<?> record) {
         String opaInput = ConnectRecordToJson.convertRecord(record);
-//        System.out.println("** OPA filter input: " + opaInput);
+        logger.debug("OPA filter input: " + opaInput);
 
         String opaResponse;
         synchronized (lock) {
             opaResponse = opaModule.evaluate(opaInput, opaFilteringEntrypoint);
         }
 
-//        System.out.println("** OPA filter response: " + opaResponse);
+        logger.debug("OPA filter response: " + opaResponse);
         return OpaResultParser.parseBooleanResult(opaResponse);
     }
 
@@ -71,7 +75,7 @@ public class OpaClient implements BundleChangeListener{
             Optional<String> masking = Optional.ofNullable(OpaResultParser.parseStringResult(maskingRawResult));
             fieldPathToOptionalMaskCache.put(fieldName, masking);
 
-            System.out.println("OPA masking response: " + masking + " for request " + requestJson);
+            logger.debug("OPA masking response: " + masking + " for request " + requestJson);
             return masking;
         }
     }

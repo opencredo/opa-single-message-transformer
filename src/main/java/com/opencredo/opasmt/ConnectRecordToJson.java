@@ -17,7 +17,6 @@ public class ConnectRecordToJson {
     public static String convertRecord(ConnectRecord<?> record) {
         var value = record.value();
         Object ret = convert(record.valueSchema(), value);
-//        System.out.println("recordToJson: " + value + " transformed to "+ret);
         return ret.toString();
     }
 
