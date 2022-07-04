@@ -1,5 +1,8 @@
 package com.opencredo.opasmt;
 
+import com.opencredo.opasmt.bundlesource.BundleSource;
+import com.opencredo.opasmt.bundlesource.FileBundleSource;
+import com.opencredo.opasmt.bundlesource.URIBundleSource;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.ConnectRecord;
 import org.apache.kafka.connect.data.Field;
@@ -10,7 +13,6 @@ import org.apache.kafka.connect.transforms.util.SimpleConfig;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 

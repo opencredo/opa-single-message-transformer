@@ -1,5 +1,7 @@
 package com.opencredo.opasmt;
 
+import com.opencredo.opasmt.bundlesource.BundleChangeListener;
+import com.opencredo.opasmt.bundlesource.BundleSource;
 import io.github.sangkeon.opa.wasm.OPAModule;
 import org.apache.kafka.connect.connector.ConnectRecord;
 import org.slf4j.Logger;
@@ -10,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class OpaClient implements BundleChangeListener{
+public class OpaClient implements BundleChangeListener {
 
     Logger logger = LoggerFactory.getLogger(OpaClient.class);
 

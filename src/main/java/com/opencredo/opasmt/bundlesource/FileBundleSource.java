@@ -1,4 +1,4 @@
-package com.opencredo.opasmt;
+package com.opencredo.opasmt.bundlesource;
 
 import io.github.sangkeon.opa.wasm.Bundle;
 import io.github.sangkeon.opa.wasm.BundleUtil;
@@ -13,7 +13,7 @@ import java.util.List;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
-public class FileBundleSource implements BundleSource{
+public class FileBundleSource implements BundleSource {
 
     Logger logger = LoggerFactory.getLogger(FileBundleSource.class);
 

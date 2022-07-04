@@ -1,4 +1,4 @@
-package com.opencredo.opasmt;
+package com.opencredo.opasmt.bundlesource;
 
 public interface BundleChangeListener {
 
