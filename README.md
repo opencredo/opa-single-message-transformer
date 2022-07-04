@@ -4,6 +4,11 @@ This is a Single Message Transformer for Apache Kafka.
 It uses OPA (Open Policy Agent) to choose which records to filter out based on a specified OPA policy bundle.
 It is intended to be use with either a source or sink Kafka Connect component.
 
+It interacts with OPA via the following library by Sangkeon Lee:
+https://github.com/sangkeon/java-opa-wasm
+
+The class RemoteBundleFetcher is a modified version of his BundleUtil class.
+
 ## Usage Instructions
 
 1. Build using Maven: `mvn package`
@@ -12,7 +17,7 @@ It is intended to be use with either a source or sink Kafka Connect component.
 
 3. Add the OPA Single Message Transformer with-dependencies jar to your sink or source's `plugin.path` folder configured in its config file.
 
-4. Add your OPA Single Message Transformer configuration to your sink or source configuration file, e.g.:
+4. Add the configuration for your OPA Single Message Transformer to your sink or source configuration file, e.g.:
 
 ```
 transforms=opa
