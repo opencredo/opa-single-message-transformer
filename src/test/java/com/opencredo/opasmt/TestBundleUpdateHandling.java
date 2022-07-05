@@ -33,7 +33,7 @@ public class TestBundleUpdateHandling {
         File tempFolder = folder.newFolder();
         Path testRegoPath = tempFolder.toPath().resolve("bundle.tar.gz");
 
-        copyRegoFileToTestLocation(testRegoPath, REGO_V1);
+        copyRegoFileToTestLocation(REGO_V1, testRegoPath);
 
         OpaTransformer<SourceRecord> transformer = buildTransformer(testRegoPath.toString());
 
@@ -45,7 +45,7 @@ public class TestBundleUpdateHandling {
         final var transformedWithPolicyV1 = transformer.apply(record);
         Assert.assertEquals("v1", ((Struct) transformedWithPolicyV1.value()).get("version"));
 
-        copyRegoFileToTestLocation(testRegoPath, REGO_V2);
+        copyRegoFileToTestLocation(REGO_V2, testRegoPath);
 
         await().atMost(20, SECONDS).until(() -> {
             SourceRecord transformedWithPolicyV2 = transformer.apply(record);
@@ -53,7 +53,7 @@ public class TestBundleUpdateHandling {
         });
     }
 
-    private void copyRegoFileToTestLocation(Path destinationFilePath, String nameOfFileToCopy) throws IOException {
+    private void copyRegoFileToTestLocation(String nameOfFileToCopy, Path destinationFilePath) throws IOException {
         Path simpleTestRegoPath = new File(nameOfFileToCopy).toPath();
         Files.copy(simpleTestRegoPath, destinationFilePath, StandardCopyOption.REPLACE_EXISTING);
     }

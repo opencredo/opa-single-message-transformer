@@ -4,6 +4,9 @@ This is a Single Message Transformer for Apache Kafka.
 It uses OPA (Open Policy Agent) to choose which records to filter out based on a specified OPA policy bundle.
 It is intended to be use with either a source or sink Kafka Connect component.
 
+When the bundle is configured using a filesystem path, it listens to the filesystem for changes.  There can be a few seconds of delay.
+When the bundle is configured using a URI, it po
+
 It interacts with OPA via the following library by Sangkeon Lee:
 https://github.com/sangkeon/java-opa-wasm
 
@@ -29,12 +32,13 @@ transforms.opa.maskingEntrypoint=kafka/maskingEntryPoint
 
 ## Parameters
 
-| Name                | Description                                                                                                   |
-|---------------------|---------------------------------------------------------------------------------------------------------------|
-| bundleFile          | The file containing the OPA bundle that the transformer should use.                                           |
-| bundleUri           | The URI containing the OPA bundle that the transformer should use.                                            |
-| filteringEntrypoint | The OPA entrypoint that specifies whether to filter out a record                                              |
-| maskingEntrypoint   | The OPA endpoint that specifies either the value to mask a field as, or null if no masking is to be performed |
+| Name                          | Description                                                                                                   |
+|-------------------------------|---------------------------------------------------------------------------------------------------------------|
+| bundleFile                    | The file containing the OPA bundle that the transformer should use.                                           |
+| bundleUri                     | The URI containing the OPA bundle that the transformer should use.                                            |
+| filteringEntrypoint           | The OPA entrypoint that specifies whether to filter out a record                                              |
+| maskingEntrypoint             | The OPA endpoint that specifies either the value to mask a field as, or null if no masking is to be performed |
+| pollBundleUriFrequencySeconds | How often to poll the bundle URI, in seconds. Defaults to 60. Setting to zero disables polling.               |
 
 Either the bundleFile or the bundleUri parameter should be set, but not both.
 

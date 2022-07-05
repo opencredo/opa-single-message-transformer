@@ -13,6 +13,7 @@ import org.apache.kafka.connect.transforms.util.SimpleConfig;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,13 +23,15 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
     public static final String BUNDLE_URI_FIELD_CONFIG = "bundleUri";
     public static final String FILTERING_ENTRYPOINT_CONFIG = "filteringEntrypoint";
     public static final String MASKING_ENTRYPOINT_CONFIG = "maskingEntrypoint";
+    public static final String POLL_BUNDLE_URI_FREQUENCY_SECONDS = "pollBundleUriFrequencySeconds";
 
     public static final ConfigDef CONFIG =
             new ConfigDef()
                     .define(BUNDLE_FILE_FIELD_CONFIG, ConfigDef.Type.STRING, null, ConfigDef.Importance.HIGH, "File path of the OPA policy bundle")
                     .define(BUNDLE_URI_FIELD_CONFIG, ConfigDef.Type.STRING, null, ConfigDef.Importance.HIGH, "URI of the OPA policy bundle")
                     .define(FILTERING_ENTRYPOINT_CONFIG, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "Entrypoint specifying whether to filter a record")
-                    .define(MASKING_ENTRYPOINT_CONFIG, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "Entrypoint specifying whether to mask a field");
+                    .define(MASKING_ENTRYPOINT_CONFIG, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "Entrypoint specifying whether to mask a field")
+                    .define(POLL_BUNDLE_URI_FREQUENCY_SECONDS, ConfigDef.Type.INT, 60, ConfigDef.Importance.HIGH, "How often bundles accessed from a URI are polled for changes");
 
     private OpaClient opaClient;
 
@@ -43,18 +46,19 @@ public class OpaTransformer<R extends ConnectRecord<R>> implements Transformatio
         if (bundleFile!=null && bundleUri!=null) {
             throw new IllegalArgumentException("Both the "+BUNDLE_FILE_FIELD_CONFIG+" and "+BUNDLE_URI_FIELD_CONFIG+" parameters cannot be provided simultaneously.");
         }
+        int pollFrequency = config.getInt(POLL_BUNDLE_URI_FREQUENCY_SECONDS);
 
         try {
             BundleSource bundleSource;
             if(bundleFile!=null) {
                 bundleSource = new FileBundleSource(new File(bundleFile));
             } else {
-                bundleSource = new URIBundleSource(bundleUri);
+                bundleSource = new URIBundleSource(bundleUri, pollFrequency);
             }
 
             opaClient = new OpaClient(bundleSource, config.getString(FILTERING_ENTRYPOINT_CONFIG), config.getString(MASKING_ENTRYPOINT_CONFIG));
             bundleSource.addBundleChangeListener(opaClient);
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
         }
     }
