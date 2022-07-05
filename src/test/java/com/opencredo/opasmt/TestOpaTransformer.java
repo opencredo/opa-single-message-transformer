@@ -203,7 +203,6 @@ public class TestOpaTransformer {
         Struct stuartActual = map.get("stuart");
         Assert.assertEquals(stuartActual.get("building"), 222);
         Assert.assertEquals(stuartActual.get("street"), "Glasgow Street");
-        // TODO actually test masking
     }
 
 

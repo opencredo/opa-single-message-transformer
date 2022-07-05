@@ -31,11 +31,11 @@ public class TestBundleUpdateHandling {
     @Test
     public void testBundleUpdateHandling() throws Exception {
         File tempFolder = folder.newFolder();
-        Path testRegoPath = tempFolder.toPath().resolve("bundle.tar.gz");
+        Path controllerBundlePath = tempFolder.toPath().resolve("bundle.tar.gz");
 
-        copyRegoFileToTestLocation(REGO_V1, testRegoPath);
+        copyRegoFileToTestLocation(REGO_V1, controllerBundlePath);
 
-        OpaTransformer<SourceRecord> transformer = buildTransformer(testRegoPath.toString());
+        OpaTransformer<SourceRecord> transformer = buildTransformer(controllerBundlePath.toString());
 
         final var schema = SchemaBuilder.struct().field("version", Schema.STRING_SCHEMA).build();
         final var struct = new Struct(schema);
@@ -45,7 +45,7 @@ public class TestBundleUpdateHandling {
         final var transformedWithPolicyV1 = transformer.apply(record);
         Assert.assertEquals("v1", ((Struct) transformedWithPolicyV1.value()).get("version"));
 
-        copyRegoFileToTestLocation(REGO_V2, testRegoPath);
+        copyRegoFileToTestLocation(REGO_V2, controllerBundlePath);
 
         await().atMost(20, SECONDS).until(() -> {
             SourceRecord transformedWithPolicyV2 = transformer.apply(record);

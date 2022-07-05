@@ -40,10 +40,9 @@ public class TestOpaTransformerWithRemoteBundle {
         folder.create();
         File tempFolder = folder.getRoot();
 
-        Path testRegoPath = tempFolder.toPath().resolve("bundle.tar.gz");
+        Path controllerBundlePath = tempFolder.toPath().resolve("bundle.tar.gz");
 
-        copyRegoFileToTestLocation(REGO_V1, testRegoPath);
-        if(!(new File(tempFolder,"bundle.tar.gz").exists())) throw new RuntimeException(tempFolder + " does not exist");
+        copyRegoFileToTestLocation(REGO_V1, controllerBundlePath);
 
         Server server = createWebserver(9999, new PathResource(tempFolder));
         server.start();
@@ -61,8 +60,7 @@ public class TestOpaTransformerWithRemoteBundle {
             var actual = transformer.apply(record);
             Assert.assertNull(actual);
 
-            // update the bundle
-            copyRegoFileToTestLocation(REGO_V2, testRegoPath);
+            copyRegoFileToTestLocation(REGO_V2, controllerBundlePath);
 
             await().atMost(10, SECONDS).until(() -> {
                 SourceRecord transformedWithPolicyV2 = transformer.apply(record);

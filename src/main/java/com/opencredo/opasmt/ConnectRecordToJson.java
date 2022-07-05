@@ -29,8 +29,7 @@ public class ConnectRecordToJson {
             return new JSONObject(fieldsMap);
         } else if (schema.type() == Schema.Type.ARRAY) {
             List<Object> in = (List) value;
-            JSONArray array = new JSONArray(in.stream().map(i -> convert(schema.valueSchema(), i)).collect(Collectors.toList()));
-            return array;
+            return new JSONArray(in.stream().map(i -> convert(schema.valueSchema(), i)).collect(Collectors.toList()));
         } else {
             return value;
         }
