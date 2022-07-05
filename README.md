@@ -5,7 +5,7 @@ It uses OPA (Open Policy Agent) to choose which records to filter out based on a
 It is intended to be use with either a source or sink Kafka Connect component.
 
 When the bundle is configured using a filesystem path, it listens to the filesystem for changes.  There can be a few seconds of delay.
-When the bundle is configured using a URI, it po
+When the bundle is configured using a URI, it polls that URI at an interval specified in the `pollBundleUriFrequencySeconds` configuration property. 
 
 It interacts with OPA via the following library by Sangkeon Lee:
 https://github.com/sangkeon/java-opa-wasm
