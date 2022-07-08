@@ -11,7 +11,7 @@ public class OPATest {
         var properties = Map.of(
                 OpaTransformer.BUNDLE_FILE_FIELD_CONFIG, testBundle,
                 OpaTransformer.FILTERING_ENTRYPOINT_CONFIG, "kafka/filter",
-                OpaTransformer.MASKING_ENTRYPOINT_CONFIG, "kafka/maskingConfig"
+                OpaTransformer.MASKING_ENTRYPOINT_CONFIG, "kafka/maskingByField"
         );
 
         var transformer = new OpaTransformer<SourceRecord>();
@@ -23,7 +23,7 @@ public class OPATest {
         var properties = Map.of(
                 OpaTransformer.BUNDLE_URI_FIELD_CONFIG, testBundle.toString(),
                 OpaTransformer.FILTERING_ENTRYPOINT_CONFIG, "kafka/filter",
-                OpaTransformer.MASKING_ENTRYPOINT_CONFIG, "kafka/maskingConfig",
+                OpaTransformer.MASKING_ENTRYPOINT_CONFIG, "kafka/maskingByField",
                 OpaTransformer.POLL_BUNDLE_URI_FREQUENCY_SECONDS, 2
         );
 

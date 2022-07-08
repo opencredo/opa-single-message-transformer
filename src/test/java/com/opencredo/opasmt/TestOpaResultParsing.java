@@ -23,4 +23,10 @@ public class TestOpaResultParsing {
         Assert.assertEquals("000 0000 0000", OpaResultParser.parseStringResult(in));
     }
 
+    @Test
+    public void parseMapResponse() {
+        String in = "[{\"result\":{\"address.city\":\"anon city\",\"['bob'].street\":\"a secret street\",\"pets[*].species\":\"* * * *\",\"pii\":\"****\",\"phone\":\"000 0000 0000\"}}]";
+        Assert.assertEquals("000 0000 0000", OpaResultParser.parseMap(in).get(("phone")));
+    }
+
 }

@@ -23,7 +23,7 @@ public class OpaClient implements BundleChangeListener {
     private final Object lock = new Object();
     // state protected by the lock
     private OPAModule opaModule;
-    private final Map<String, Optional<String>> fieldPathToOptionalMaskCache = new HashMap<>();
+    private Map<String, String> fieldPathToOptionalMaskCache = new HashMap<>();
 
     public OpaClient(BundleSource bundleSource, String opaFilteringEntrypoint, String maskingEntrypoint) throws IOException {
         this.bundleSource = bundleSource;
@@ -37,8 +37,8 @@ public class OpaClient implements BundleChangeListener {
 
     private void restartWithNewBundleContents() throws IOException {
         synchronized (lock) {
-            fieldPathToOptionalMaskCache.clear();
             opaModule = new OPAModule(bundleSource.getBundle());
+            fieldPathToOptionalMaskCache = collectFieldMaskingConfig();
         }
     }
 
@@ -52,7 +52,26 @@ public class OpaClient implements BundleChangeListener {
         }
     }
 
-    public  boolean shouldFilterOut(ConnectRecord<?> record) {
+    private Map<String,String> collectFieldMaskingConfig() {
+        String maskingRawResult = opaModule.evaluate("{}", maskingEntrypoint);
+        Map<String, Object> stringObjectMap = OpaResultParser.parseMap(maskingRawResult);
+
+        Map<String, String> fieldMaskingConfig = new HashMap<>();
+
+        for(Map.Entry<String,Object> entry : stringObjectMap.entrySet()) {
+            String fieldName = entry.getKey();
+            Object maskingForField = entry.getValue();
+
+            if (maskingForField instanceof String s) {
+                fieldMaskingConfig.put(fieldName, s);
+            } else {
+                throw new IllegalArgumentException("Field " + fieldName + " is of type " + maskingForField.getClass().getName() + " when it must be a String");
+            }
+        }
+        return fieldMaskingConfig;
+    }
+
+    public boolean shouldFilterOut(ConnectRecord<?> record) {
         String opaInput = ConnectRecordToJson.convertRecord(record);
         logger.debug("OPA filter input: " + opaInput);
 
@@ -67,18 +86,7 @@ public class OpaClient implements BundleChangeListener {
 
     public Optional<String> getMaskingReplacement(String fieldName) {
         synchronized (lock) {
-            Optional<String> mask = fieldPathToOptionalMaskCache.get(fieldName);
-            if (mask != null) {
-                return mask;
-            }
-
-            String requestJson = "{ \"fieldName\": \"" + fieldName + "\" }";
-            String maskingRawResult = opaModule.evaluate(requestJson, maskingEntrypoint);
-            Optional<String> masking = Optional.ofNullable(OpaResultParser.parseStringResult(maskingRawResult));
-            fieldPathToOptionalMaskCache.put(fieldName, masking);
-
-            logger.debug("OPA masking response: " + masking + " for request " + requestJson);
-            return masking;
+            return Optional.ofNullable(fieldPathToOptionalMaskCache.get(fieldName));
         }
     }
 

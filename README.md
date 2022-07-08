@@ -44,7 +44,7 @@ Either the bundleFile or the bundleUri parameter should be set, but not both.
 
 The example bundle included is currently built manually from the .rego file:
 
-`opa build -t wasm -e kafka/filter rego.rego`
+`opa build -t wasm -e kafka/filter -e kafka/maskingByField rego.rego`
 
 ## Masking configuration in rego
 

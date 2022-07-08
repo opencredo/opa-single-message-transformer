@@ -9,7 +9,3 @@ filter {
 maskingByField = {
 	"version" : "v2"
 }
-
-maskingConfig[field] {
-	field = maskingByField[input.fieldName]
-}

@@ -13,7 +13,3 @@ maskingByField = {
     "pets[*].species": "* * * *",
     "['bob'].street": "a secret street"
 }
-
-maskingConfig[field] {
-	field = maskingByField[input.fieldName]
-}

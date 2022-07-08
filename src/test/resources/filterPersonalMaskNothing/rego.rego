@@ -8,7 +8,3 @@ filter {
 
 maskingByField = {
 }
-
-maskingConfig[field] {
-	field = maskingByField[input.fieldName]
-}
