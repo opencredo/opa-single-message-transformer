@@ -39,7 +39,14 @@ plugin.path=[some directory where you'll put any sink, source and transform JARs
 
 4. Add the OPA Single Message Transformer with-dependencies jar to your sink or source's `plugin.path` folder configured in its config file.
 
-5. Add the configuration for your OPA Single Message Transformer to your sink or source configuration file.  For example, here I am setting up a file source to read from the folder referred to under `fs.uris`:
+
+5. Build an OPA webassembly bundle by writing a rego file and running ```opa build -t wasm -e kafka/filter -e kafka/maskingByField [rego-file] ``` 
+
+or copy this one from the component's repository to your local drive:
+https://github.com/opencredo/opa-single-message-transformer/blob/main/src/test/resources/testRego/bundle.tar.gz
+
+
+6. Add the configuration for your OPA Single Message Transformer to your sink or source configuration file.  For example, here I am setting up a file source to read from the folder referred to under `fs.uris`:
 
 ```
 name=local-file-source
@@ -52,7 +59,7 @@ topic=connect-test
 
 transforms=opa
 transforms.opa.type=OpaTransformer
-transforms.opa.bundleFile=/Users/mfarrow/code/opa-single-message-transformer/example/bundle.tar.gz
+transforms.opa.bundleFile=[path to your bundle that you just generated or copied]
 transforms.opa.filteringEntrypoint=kafka/filter
 transforms.opa.maskingEntrypoint=kafka/maskingEntryPoint
 ```
@@ -60,13 +67,13 @@ transforms.opa.maskingEntrypoint=kafka/maskingEntryPoint
 I also had to add the file source's jar (https://www.confluent.io/hub/mmolimar/kafka-connect-fs) to my worker's plugin-path directory.
 
 
-6. Run the Kafka Connect pipeline, in my case:
+7. Run the Kafka Connect pipeline, in my case:
 ```
 bin/connect-standalone.sh config/worker.properties config/file-source.properties
 ```
 
 
-7. Run kafka-console-consumer to listen to messages that the pipeline writes to your Kafka topic: 
+8. Run kafka-console-consumer to listen to messages that the pipeline writes to your Kafka topic: 
 ```
 bin/kafka-console-consumer.sh --topic connect-test --from-beginning --bootstrap-server localhost:9092
 ```
