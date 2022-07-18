@@ -14,20 +14,61 @@ The class RemoteBundleFetcher is a modified version of his BundleUtil class.
 
 ## Usage Instructions
 
-1. Build using Maven: `mvn package`
+1. Build using Maven `mvn package` to generate a JAR containing the component and all dependencies.
 
-2. Set up your Kafka Connect sink or source.
+2. Follow the very approachable [Kafka Quickstart](https://kafka.apache.org/quickstart) tutorial's steps 1-3 to install Zookeeper and Kafka and to create a topic.  
 
-3. Add the OPA Single Message Transformer with-dependencies jar to your sink or source's `plugin.path` folder configured in its config file.
+3. Create a worker config file for a Kafka Connect Worker.
 
-4. Add the configuration for your OPA Single Message Transformer to your sink or source configuration file, e.g.:
+The [Kafka Connect docs](https://docs.confluent.io/home/connect/self-managed/userguide.html) are essential for a basic idea of setting this up.
+
+Here are some values that worked for my simple case:
+```
+bootstrap.servers=localhost:9092
+key.converter=org.apache.kafka.connect.storage.StringConverter
+value.converter=org.apache.kafka.connect.storage.StringConverter
+internal.key.converter=org.apache.kafka.connect.json.JsonConverter
+internal.value.converter=org.apache.kafka.connect.json.JsonConverter
+internal.key.converter.schemas.enable=true
+internal.value.converter.schemas.enable=true
+offset.storage.file.filename=/tmp/connect.offsets
+offset.flush.interval.ms=5000
+consumer.metadata.max.age.ms=10000
+plugin.path=[some directory where you'll put any sink, source and transform JARs]
+```
+
+4. Add the OPA Single Message Transformer with-dependencies jar to your sink or source's `plugin.path` folder configured in its config file.
+
+5. Add the configuration for your OPA Single Message Transformer to your sink or source configuration file.  For example, here I am setting up a file source to read from the folder referred to under `fs.uris`:
 
 ```
+name=local-file-source
+connector.class=com.github.mmolimar.kafka.connect.fs.FsSourceConnector
+fs.uris=file:///Users/mfarrow/kafka_2.13-3.2.0/test-data/
+policy.class=com.github.mmolimar.kafka.connect.fs.policy.SimplePolicy
+file_reader.class=com.github.mmolimar.kafka.connect.fs.file.reader.JsonFileReader
+tasks.max=1
+topic=connect-test
+
 transforms=opa
 transforms.opa.type=OpaTransformer
 transforms.opa.bundleFile=/Users/mfarrow/code/opa-single-message-transformer/example/bundle.tar.gz
 transforms.opa.filteringEntrypoint=kafka/filter
 transforms.opa.maskingEntrypoint=kafka/maskingEntryPoint
+```
+
+I also had to add the file source's jar (https://www.confluent.io/hub/mmolimar/kafka-connect-fs) to my worker's plugin-path directory.
+
+
+6. Run the Kafka Connect pipeline, in my case:
+```
+bin/connect-standalone.sh config/worker.properties config/file-source.properties
+```
+
+
+7. Run kafka-console-consumer to listen to messages that the pipeline writes to your Kafka topic: 
+```
+bin/kafka-console-consumer.sh --topic connect-test --from-beginning --bootstrap-server localhost:9092
 ```
 
 ## Parameters
