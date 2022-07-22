@@ -5,12 +5,7 @@ It uses OPA (Open Policy Agent) to choose which records to filter out based on a
 It is intended to be use with either a source or sink Kafka Connect component.
 
 When the bundle is configured using a filesystem path, it listens to the filesystem for changes.  There can be a few seconds of delay.
-When the bundle is configured using a URI, it polls that URI at an interval specified in the `pollBundleUriFrequencySeconds` configuration property. 
-
-It interacts with OPA via the following library by Sangkeon Lee:
-https://github.com/sangkeon/java-opa-wasm
-
-The class RemoteBundleFetcher is a modified version of his BundleUtil class.
+When the bundle is configured using a URI, it polls that URI at an interval specified in the `pollBundleUriFrequencySeconds` configuration property.
 
 ## Usage Instructions
 
@@ -94,11 +89,19 @@ The example bundle included is currently built manually from the .rego file:
 
 `opa build -t wasm -e kafka/filter -e kafka/maskingByField rego.rego`
 
-## Masking configuration in rego
+# Configuration Example 
 
-Here we are masking several fields.
+Here is an example where we are masking several fields and filtering records.
 
 ```
+package kafka
+
+default filter = false
+
+filter {
+    input.personal == true
+}
+
 maskingByField = {
     "pii" : "****",
     "phone": "000 0000 0000",
@@ -108,6 +111,9 @@ maskingByField = {
 }
 ```
 
+### Filtering records
+The 'filter' entrypoint has a rego string that tells the component to filter for records where the 'personal' field is set to true.
+Of course, any valid rego expression could have been used here. 
 
 ### Masking object fields
 'city' is a field on the 'address' object.  It is referenced using dot notation.
@@ -119,3 +125,9 @@ In the example, all elements in the 'pets' array have their species field masked
 
 ### Masking fields that are map values
 In the example above, we mask the 'street' field that is on a struct that was the value in a map that associated with the key 'bob'.
+
+# Acknowledgements
+This component interacts with OPA via the following library by Sangkeon Lee:
+https://github.com/sangkeon/java-opa-wasm
+
+The class RemoteBundleFetcher is a modified version of his BundleUtil class.
