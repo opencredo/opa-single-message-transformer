@@ -83,11 +83,13 @@ bin/kafka-console-consumer.sh --topic connect-test --from-beginning --bootstrap-
 | maskingEntrypoint             | The OPA endpoint that specifies either the value to mask a field as, or null if no masking is to be performed |
 | pollBundleUriFrequencySeconds | How often to poll the bundle URI, in seconds. Defaults to 60. Setting to zero disables polling.               |
 
-Either the bundleFile or the bundleUri parameter should be set, but not both.
+Either the `bundleFile` or the `bundleUri` parameter should be set, but not both.
 
-The example bundle included is currently built manually from the .rego file:
-
-`opa build -t wasm -e kafka/filter -e kafka/maskingByField rego.rego`
+We have included a variety of OPA bundle examples for different test purposes, and you can find in `/src/test/resources` folder.
+For each example we have compiled the rego files into a WebAssembly bundle so that tests can use them. This is how you can compile the rego file:
+```
+opa build -t wasm -e kafka/filter -e kafka/maskingByField rego.rego
+```
 
 # Configuration Example 
 

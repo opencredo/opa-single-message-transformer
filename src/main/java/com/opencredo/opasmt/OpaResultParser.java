@@ -22,11 +22,10 @@ public class OpaResultParser {
         return obj.getBoolean("result");
     }
 
-    // "[{\"result\":{\"address.city\":\"anon city\",\"['bob'].street\":\"a secret street\",\"pets[*].species\":\"* * * *\",\"pii\":\"****\",\"phone\":\"000 0000 0000\"}}]"
     public static Map<String, Object> parseMap(String in) {
         JSONArray arr = new JSONArray(in);
         var obj = arr.getJSONObject(0);
-        var resulObject = obj.getJSONObject("result");
-        return resulObject.toMap();
+        var resultObject = obj.getJSONObject("result");
+        return resultObject.toMap();
     }
 }
