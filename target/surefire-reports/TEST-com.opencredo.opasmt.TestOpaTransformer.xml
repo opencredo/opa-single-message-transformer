@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite tests="8" failures="0" name="com.opencredo.opasmt.TestOpaTransformer" time="0.363" errors="0" skipped="0">
+<testsuite tests="8" failures="0" name="com.opencredo.opasmt.TestOpaTransformer" time="0.237" errors="0" skipped="0">
   <properties>
     <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
     <property name="java.vm.version" value="17.0.1+1"/>
@@ -57,16 +57,15 @@
     <property name="sun.io.unicode.encoding" value="UnicodeBig"/>
     <property name="sun.cpu.endian" value="little"/>
     <property name="java.vendor.version" value="Homebrew"/>
-    <property name="sun.stdout.encoding" value="UTF-8"/>
     <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
   </properties>
-  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testNotFilteringRecordsOut" time="0.027"/>
-  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testArrayFieldMasking" time="0.036"/>
-  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testFilteringRecordsOut" time="0.045"/>
-  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testObjectFieldMasking" time="0.05"/>
-  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testFilteringBasedOnRecordsOnNestedFields" time="0.049"/>
-  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testNotFilteringBasedOnRecordsOnNestedFields" time="0.057"/>
-  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testMapFieldMasking" time="0.067"/>
-  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testFieldMasking" time="0.032"/>
+  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testNotFilteringRecordsOut" time="0.022"/>
+  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testArrayFieldMasking" time="0.033"/>
+  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testFilteringRecordsOut" time="0.032"/>
+  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testObjectFieldMasking" time="0.026"/>
+  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testFilteringBasedOnRecordsOnNestedFields" time="0.029"/>
+  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testNotFilteringBasedOnRecordsOnNestedFields" time="0.032"/>
+  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testMapFieldMasking" time="0.036"/>
+  <testcase classname="com.opencredo.opasmt.TestOpaTransformer" name="testFieldMasking" time="0.027"/>
 </testsuite>
