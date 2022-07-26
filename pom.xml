@@ -6,7 +6,7 @@
 
     <groupId>com.opencredo</groupId>
     <artifactId>opa-single-message-transformer</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>${env.APP_VERSION}</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
