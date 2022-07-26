@@ -22,7 +22,9 @@ jobs:
         with:
           strip_v: true
       - name: Use tag
-        run: export APP_VERSION=${{steps.tag.outputs.tag}}
+        run: mvn versions:set -DnewVersion=${{steps.tag.outputs.tag}}
+      - name: Use tag
+        run: mvn versions:commit
       - name: Build with Maven
         run: mvn -B package --file pom.xml -Dmaven.test.skip
       - name: Release
