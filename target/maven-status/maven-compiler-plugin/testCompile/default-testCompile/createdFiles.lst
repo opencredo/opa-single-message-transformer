@@ -1,0 +1,5 @@
+com/opencredo/opasmt/TestOpaTransformerWithRemoteBundle.class
+com/opencredo/opasmt/TestOpaTransformer.class
+com/opencredo/opasmt/TestOpaResultParsing.class
+com/opencredo/opasmt/TestBundleUpdateHandling.class
+com/opencredo/opasmt/OPATest.class
