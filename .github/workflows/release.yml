@@ -23,5 +23,5 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            opa-single-message-transformer-0.1.SNAPSHOT.jar
-            opa-single-message-transformer-0.1.SNAPSHOT-jar-with-dependencies.jar
+            target/opa-single-message-transformer-0.1.SNAPSHOT.jar
+            target/opa-single-message-transformer-0.1.SNAPSHOT-jar-with-dependencies.jar
