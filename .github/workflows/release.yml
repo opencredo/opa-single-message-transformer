@@ -10,8 +10,27 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '18'
+          cache: 'maven'
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml -Dmaven.test.skip
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            opa-single-message-transformer-0.1.SNAPSHOT.jar
+            opa-single-message-transformer-0.1.SNAPSHOT-jar-with-dependencies.jar
+
+
+
+
+
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
