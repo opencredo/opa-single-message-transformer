@@ -25,23 +25,3 @@ jobs:
           files: |
             opa-single-message-transformer-0.1.SNAPSHOT.jar
             opa-single-message-transformer-0.1.SNAPSHOT-jar-with-dependencies.jar
-
-
-
-
-
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: |
-            Initial version with OPA Transformer
-            - File/URI OPA Bundle Support
-            - Example with File Source Connector
-          draft: false
-          prerelease: false
