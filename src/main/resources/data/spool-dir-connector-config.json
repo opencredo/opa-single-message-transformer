@@ -1,0 +1,15 @@
+{
+"name":"SchemaLessJsonSpoolDir",
+    "config":{
+        "connector.class":"com.github.jcustenborder.kafka.connect.spooldir.SpoolDirSchemaLessJsonSourceConnector",
+        "name":"SchemaLessJsonSpoolDir",
+        "tasks.max":"1",
+        "input.path":"/tmp/data/files/",
+        "input.file.pattern":"data-file.json",
+        "halt.on.error":"false",
+        "error.path":"/tmp/data/files/errors/",
+        "finished.path":"/tmp/data/files/done",
+        "topic":"opa-transform",
+        "value.converter":"org.apache.kafka.connect.storage.StringConverter"
+        }
+}

@@ -32,7 +32,7 @@ services:
       KAFKA_JMX_PORT: 9999
       KAFKA_JMX_HOSTNAME: localhost
     volumes:
-      - ./data:/tmp/data
+      - ./target/data:/tmp/data
   connect:
     image: confluentinc/cp-kafka-connect:latest
     hostname: connect
@@ -45,8 +45,8 @@ services:
       - bash
       - -c
       - |
-        confluent-hub install --no-prompt mmolimar/kafka-connect-fs:1.3.0
-        confluent-hub install --no-prompt confluentinc/kafka-connect-elasticsearch:5.4.0
+        confluent-hub install --no-prompt jcustenborder/kafka-connect-spooldir:2.0.64
+        confluent-hub install --no-prompt confluentinc/kafka-connect-elasticsearch:10.0.3
         /etc/confluent/docker/run
     environment:
       CONNECT_BOOTSTRAP_SERVERS: "broker:9092"
@@ -65,8 +65,11 @@ services:
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
       CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
       KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=connect -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.rmi.port=5555 -Dcom.sun.management.jmxremote.port=5555
+      CLASSPATH: "/tmp/plugin/"
     volumes:
-      - ./data:/tmp/data
+      - ./target/data:/tmp/data
+      - ./target/data/opa-single-message-transformer-0.0.1-jar-with-dependencies.jar:/usr/share/java/opa-single-message-transformer-0.0.1-jar-with-dependencies.jar
+      - ./target/data/opa-single-message-transformer-0.0.1-jar-with-dependencies.jar:/usr/share/confluent-hub-components/opa-single-message-transformer-0.0.1-jar-with-dependencies.jar
   create-topics:
     image: confluentinc/cp-kafka:5.5.0
     hostname: create-topics
@@ -80,13 +83,13 @@ services:
       KAFKA_BROKER_ID: ignored
       KAFKA_ZOOKEEPER_CONNECT: ignored
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.0.1
     container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
     environment:
-      - discovery.type=single-node
-      - 'ES_JAVA_OPTS:-Xms1g-Xmx1g'
+      - xpack.security.enabled=false
+      - "discovery.type=single-node"
     ports:
-      - "9200:9200"
+      - 9200:9200
   manager:
     image: sheepkiller/kafka-manager
     ports:
