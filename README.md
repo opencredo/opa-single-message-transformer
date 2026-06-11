@@ -1,5 +1,8 @@
 # OPA Single Message Transformer
 
+> [!NOTE]
+> This repo has been archived and is no longer under development. OpenCredo is now part of [Trifork](https://github.com/trifork).
+
 This is a Single Message Transformer for Apache Kafka.
 It uses OPA (Open Policy Agent) to choose which records to filter out based on a specified OPA policy bundle.
 It is intended to be use with either a source or sink Kafka Connect component.
